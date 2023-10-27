@@ -48,22 +48,28 @@ class FontPrimer(GFBuilder):
 
         # Build color apex
         if boolify(self.config.get("buildColorVariable", True)):
-            self.build_variant_vf(self.color_guidelines(), False)
+            self.build_color_guidelines()
 
         # Build variant VFs
         for variant in self.config.get("variants", []):
             for guideline in self.guidelines:
                 self.build_variant_vf(variant.data, guideline)
 
-    def color_guidelines(self):
+    def build_color_guidelines(self):
         ordinary_vf = self.apex_vf_path()
         color_vf = self.apex_vf_path(color=True)
         sourcepath = self.sources[0].path
         guidelines_path = sourcepath.replace(".glyphs", ".colr-guidelines.glyphs")
-        return {
+        variant = {
             "name": "Color",
-            "alias": "COLR",
-            "steps": [
+            "alias": "COLR"
+        }
+        new_axes = [ax.tag for ax in self.first_source.axes if ax.tag] + ["GDLO"]
+        new_family_name = self.abbreviate_family_name(variant, False)
+        vfname = new_family_name.replace(" ", "") + f"[{','.join(new_axes)}].ttf"
+        target = os.path.join(self.config["vfDir"], vfname)
+        self.recipe[target] = [
+                { "source": sourcepath },
                 {
                     "operation": "exec",
                     "exe": sys.executable + " -m fontprimer.guidelines",
@@ -73,12 +79,17 @@ class FontPrimer(GFBuilder):
                     "source": guidelines_path
                 },
                 {
-                    "operation": "exec",
+                    "operation": "buildVariable",
+                    "fontmake_args": self.fontmake_args(),
+                },
+                {"operation": "buildStat"},
+                {"operation": "rename", "name": new_family_name},
+                {
+                    "postprocess": "exec",
                     "exe": sys.executable + " -m fontprimer.colrguidelines",
-                    "args": f"-o {color_vf} {ordinary_vf}"
-                }
-            ],
-        }
+                    "args": f"-o {target} {target}"
+                },
+        ]
 
     def build_variant_vf(self, variant, guideline=False):
         assert not isinstance(variant, YAML)
