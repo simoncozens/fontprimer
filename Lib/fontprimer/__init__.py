@@ -74,7 +74,7 @@ class FontPrimer(GFBuilder):
                 },
                 {
                     "operation": "exec",
-                    "exe": sys.executable + " -m fontprimer.colrguides",
+                    "exe": sys.executable + " -m fontprimer.colrguidelines",
                     "args": f"-o {color_vf} {ordinary_vf}"
                 }
             ],
