@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fontprimer"
+description = "Merge together two source fonts in UFO format"
+readme = "README.md"
+dynamic = ["version"]
+authors = [
+  { name = "Simon Cozens", email = "simon@simon-cozens.org" }
+]
+dependencies = [
+  "paintcompiler>=0.3.0",
+  "babelfont @ git+https://github.com/simoncozens/babelfont" # git version
+]
+[tool.setuptools.packages.find]
+where = ["Lib"]
