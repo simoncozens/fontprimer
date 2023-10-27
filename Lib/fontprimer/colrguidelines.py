@@ -10,7 +10,6 @@ def paints():
     capheight = font["OS/2"].sCapHeight
     ascender = font["OS/2"].sTypoAscender
     descender = font["OS/2"].sTypoDescender
-    import IPython; IPython.embed()
     guideline = PaintGlyph(
                         "_guide",
                         PaintSolid(
