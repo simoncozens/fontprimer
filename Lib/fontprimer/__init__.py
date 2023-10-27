@@ -4,25 +4,17 @@ import babelfont
 import re
 import sys
 
+from strictyaml import YAML
+
 from gftools.builder.recipeproviders.googlefonts import GFBuilder, DEFAULTS
-
-
-color_guidelines = {
-    "name": "Color",
-    "alias": "COLR",
-    "steps": [
-        {
-            "operation": "exec",
-            "exe": sys.executable + " -m fontprimer.colrguides",
-            "args": "-o $out $in",
-        }
-    ],
-}
+from gftools.builder.recipeproviders import boolify
 
 
 def pinned_axes(variant):
     pins = set()
     for step in variant["steps"]:
+        if "operation" not in step:
+            continue
         if step["operation"] == "subspace":
             for axis in step["axes"].split():
                 axis, stops = axis.split("=")
@@ -42,12 +34,12 @@ class FontPrimer(GFBuilder):
 
     @property
     def guidelines(self):
-        if self.config.get("doGuidelines"):
+        if boolify(self.config.get("doGuidelines")):
             return [False, True]
         return [False]
 
     def build_all_variables(self):
-        if not self.config.get("buildVariable", True):
+        if not boolify(self.config.get("buildVariable", True)):
             return
 
         # Build apex VF
@@ -55,15 +47,41 @@ class FontPrimer(GFBuilder):
             self.recipe[self.apex_vf_path(guideline)] = self.variable_steps(guideline)
 
         # Build color apex
-        if self.config.get("buildColorVariable", True):
-            self.build_variant_vf(color_guidelines, False)
+        if boolify(self.config.get("buildColorVariable", True)):
+            self.build_variant_vf(self.color_guidelines(), False)
 
         # Build variant VFs
         for variant in self.config.get("variants", []):
             for guideline in self.guidelines:
-                self.build_variant_vf(variant, guideline)
+                self.build_variant_vf(variant.data, guideline)
+
+    def color_guidelines(self):
+        ordinary_vf = self.apex_vf_path()
+        color_vf = self.apex_vf_path(color=True)
+        sourcepath = self.sources[0].path
+        guidelines_path = sourcepath.replace(".glyphs", ".colr-guidelines.glyphs")
+        return {
+            "name": "Color",
+            "alias": "COLR",
+            "steps": [
+                {
+                    "operation": "exec",
+                    "exe": sys.executable + " -m fontprimer.guidelines",
+                    "args": "--color -o %s %s" % (guidelines_path, sourcepath),
+                },
+                {
+                    "source": guidelines_path
+                },
+                {
+                    "operation": "exec",
+                    "exe": sys.executable + " -m fontprimer.colrguides",
+                    "args": f"-o {color_vf} {ordinary_vf}"
+                }
+            ],
+        }
 
     def build_variant_vf(self, variant, guideline=False):
+        assert not isinstance(variant, YAML)
         new_family_name = self.abbreviate_family_name(variant, guideline)
         # Check in the steps to see if we are pinning any axes
         pins = pinned_axes(variant)
@@ -76,7 +94,7 @@ class FontPrimer(GFBuilder):
         ]
 
     def build_all_statics(self):
-        if not self.config.get("buildStatic", True):
+        if not boolify(self.config.get("buildStatic", True)):
             return
         source = self.sources[0]
 
@@ -96,12 +114,12 @@ class FontPrimer(GFBuilder):
                         source,
                         instance,
                         add_name=variantname,
-                        variant=definition,
+                        variant=definition.data,
                         guidelines=guideline,
                         output="ttf",
                     )
 
-    def apex_vf_path(self, guidelines=False):
+    def apex_vf_path(self, guidelines=False, color=False):
         if len(self.sources) > 1:
             raise ValueError("Only one source supported")
         source = self.sources[0]
@@ -113,8 +131,10 @@ class FontPrimer(GFBuilder):
             return None
         tags = [ax.tag for ax in self.first_source.axes]
         axis_tags = ",".join(sorted(tags))
-
-        family_name = self.abbreviate_family_name(variant=None, guidelines=guidelines)
+        variant = None
+        if color:
+            variant = { "name": "-Color", "alias": "COLR"}
+        family_name = self.abbreviate_family_name(variant=variant, guidelines=guidelines)
         sourcebase = family_name.replace(" ", "")
         return os.path.join(self.config["vfDir"], f"{sourcebase}[{axis_tags}].ttf")
 
@@ -162,7 +182,7 @@ class FontPrimer(GFBuilder):
             if len(" ".join(elements)) > 28 and variant and variant.get("alias"):
                 elements[1] = variant.get("alias")
             if len(" ".join(elements)) > 28 and "shortFamilyName" in self.config:
-                elements[0] = self.config["shortFamilyName"]
+                elements[0] = str(self.config["shortFamilyName"])
             if len(" ".join(elements)) > 28:
                 raise ValueError(
                     "Family name '%s' too long; provide shortFamilyName and variant aliases"

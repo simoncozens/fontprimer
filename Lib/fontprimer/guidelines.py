@@ -1,4 +1,4 @@
-from glyphsLib.classes import GSLINE, GSFont, GSNode, GSPath
+from glyphsLib.classes import GSLINE, GSFont, GSNode, GSPath, GSGlyph, GSLayer
 
 
 # from https://github.com/mekkablue/Glyphs-Scripts/blob/a4421210dd17305e3205b7ca998cab579b778bf6/Paths/Fill%20Up%20with%20Rectangles.py
@@ -55,12 +55,31 @@ def add_guidelines(font, args):
                 topRight = (layer.width+args.overlap, height+thickness)
                 layerRect = drawRect(bottomLeft, topRight)
                 layer.shapes.append(layerRect)
-    
+
+def add_guideline_glyph(font, thickness):
+    if "_guide" in font.glyphs:
+        return
+    font.glyphs.append(GSGlyph("_guide"))
+    for master in font.masters:
+        layer = GSLayer()
+        layer.associatedMasterId = master.id
+        layer.layerId = master.id
+        layer.width = 1000
+        layer.shapes = [ GSPath() ]
+        layer.shapes[0].nodes = [
+                GSNode((0, 0), GSLINE),
+                GSNode((1000, 0), GSLINE),
+                GSNode((1000, thickness), GSLINE),
+                GSNode((0, thickness), GSLINE)
+            ]
+        font.glyphs["_guide"].layers.append(layer)
+    pass
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("font", help="Glyphs file", metavar="GLYPHS")
+    parser.add_argument("--color", action="store_true", help="Output a single stroke for color processing")
     parser.add_argument("--output", "-o", help="Output file", metavar="GLYPHS")
     parser.add_argument("--overlap", help="Overlap of the guidelines", type=int, default=10)
     parser.add_argument("--default-thickness", help="Default guideline thickness", type=int, default=16)
@@ -70,7 +89,10 @@ if __name__ == "__main__":
     if not args.output:
         args.output = args.font
     font = GSFont(args.font)
-    decompose_all_layers(font)
-    add_guidelines(font, args)
+    if args.color:
+        add_guideline_glyph(font, args.default_thickness)
+    else:
+        decompose_all_layers(font)
+        add_guidelines(font, args)
     print("Saving on "+args.output)
     font.save(args.output)
