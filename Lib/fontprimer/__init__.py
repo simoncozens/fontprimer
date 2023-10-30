@@ -3,11 +3,14 @@ import copy
 import babelfont
 import re
 import sys
+import yaml
+from tempfile import NamedTemporaryFile
 
 from strictyaml import YAML
 
 from gftools.builder.recipeproviders.googlefonts import GFBuilder, DEFAULTS
 from gftools.builder.recipeproviders import boolify
+from gftools.builder.schema import stat_schema
 
 
 def pinned_axes(variant):
@@ -27,6 +30,13 @@ class FontPrimer(GFBuilder):
     def write_recipe(self):
         self.recipe = {}
         self.config = {**DEFAULTS, **self.config}
+        if "stat" in self.config:
+            self.statfile = NamedTemporaryFile(mode="w", delete=False)
+            self.config["stat"].revalidate(stat_schema)
+            yaml.dump(self.config["stat"].data, self.statfile)
+            self.statfile.close()
+        else:
+            self.statfile = None
         self.first_source = babelfont.load(self.sources[0].path)
         self.build_all_variables()
         self.build_all_statics()
@@ -55,6 +65,16 @@ class FontPrimer(GFBuilder):
             for guideline in self.guidelines:
                 self.build_variant_vf(variant.data, guideline)
 
+    def build_STAT(self):
+        if self.statfile:
+            args = {"args": "--src " + self.statfile.name}
+        else:
+            args = {}
+        return {
+            "operation": "buildStat",
+            **args
+        }
+
     def build_color_guidelines(self):
         ordinary_vf = self.apex_vf_path()
         color_vf = self.apex_vf_path(color=True)
@@ -82,8 +102,7 @@ class FontPrimer(GFBuilder):
                     "operation": "buildVariable",
                     "fontmake_args": self.fontmake_args(),
                 },
-                {"operation": "buildStat"},
-                {"operation": "hbsubset"},
+                self.build_STAT(),
                 {"operation": "rename", "name": new_family_name},
                 {
                     "postprocess": "exec",
@@ -172,9 +191,9 @@ class FontPrimer(GFBuilder):
             + [
                 {
                     "operation": "buildVariable",
-                    "fontmake_args": self.fontmake_args(),
+                    "args": self.fontmake_args(),
                 },
-                {"operation": "buildStat"},
+                self.build_STAT(),
             ]
         )
 
@@ -249,13 +268,13 @@ class FontPrimer(GFBuilder):
             self.recipe[target].extend(copy.deepcopy(variant.get("steps")))
         self.recipe[target].extend(
             [
+                {"operation": "rename", "name": new_family_name},
                 {
                     "operation": "subspace",
                     "axes": location,
-                    # "other_args": "--update-name-table"
+                    "args": "--update-name-table"
                 },
                 {"operation": "hbsubset"},
-                {"operation": "rename", "name": new_family_name},
                 {"operation": "fix", "fixargs": "--include-source-fixes"},
             ]
         )
