@@ -83,6 +83,7 @@ class FontPrimer(GFBuilder):
                     "fontmake_args": self.fontmake_args(),
                 },
                 {"operation": "buildStat"},
+                {"operation": "hbsubset"},
                 {"operation": "rename", "name": new_family_name},
                 {
                     "postprocess": "exec",
@@ -246,15 +247,14 @@ class FontPrimer(GFBuilder):
         self.recipe[target] = self.variable_steps(guidelines)
         if variant:
             self.recipe[target].extend(copy.deepcopy(variant.get("steps")))
-        self.recipe[target].append(
-            {
-                "operation": "subspace",
-                "axes": location,
-                # "other_args": "--update-name-table"
-            },
-        )
         self.recipe[target].extend(
             [
+                {
+                    "operation": "subspace",
+                    "axes": location,
+                    # "other_args": "--update-name-table"
+                },
+                {"operation": "hbsubset"},
                 {"operation": "rename", "name": new_family_name},
                 {"operation": "fix", "fixargs": "--include-source-fixes"},
             ]
