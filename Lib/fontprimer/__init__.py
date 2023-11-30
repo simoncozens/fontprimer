@@ -193,7 +193,11 @@ class FontPrimer(GFBuilder):
                     "operation": "buildVariable",
                     "args": self.fontmake_args(),
                 },
-                {"operation": "fix", "fixargs": "--include-source-fixes"},
+                {"operation": "hbsubset"},
+                # The space at the end of this fixargs is a stupid hack
+                # to get around a bug in builder2. If a step is repeated
+                # exactly in the recipe, it breaks the build graph.
+                {"operation": "fix", "fixargs": "--include-source-fixes "},
                 self.build_STAT(),
             ]
         )
