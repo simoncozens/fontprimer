@@ -193,6 +193,7 @@ class FontPrimer(GFBuilder):
                     "operation": "buildVariable",
                     "args": self.fontmake_args(),
                 },
+                {"operation": "fix", "fixargs": "--include-source-fixes"},
                 self.build_STAT(),
             ]
         )
