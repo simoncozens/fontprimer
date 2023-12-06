@@ -54,7 +54,9 @@ class FontPrimer(GFBuilder):
 
         # Build apex VF
         for guideline in self.guidelines:
-            self.recipe[self.apex_vf_path(guideline)] = self.variable_steps(guideline)
+            self.recipe[self.apex_vf_path(guideline)] = self.variable_steps(
+                guideline
+            ) + [{"operation": "hbsubset"}]
 
         # Build color apex
         if boolify(self.config.get("buildColorVariable", True)):
@@ -70,45 +72,37 @@ class FontPrimer(GFBuilder):
             args = {"args": "--src " + self.statfile.name}
         else:
             args = {}
-        return {
-            "operation": "buildStat",
-            **args
-        }
+        return {"operation": "buildStat", **args}
 
     def build_color_guidelines(self):
         ordinary_vf = self.apex_vf_path()
         color_vf = self.apex_vf_path(color=True)
         sourcepath = self.sources[0].path
         guidelines_path = sourcepath.replace(".glyphs", ".colr-guidelines.glyphs")
-        variant = {
-            "name": "Color",
-            "alias": "COLR"
-        }
+        variant = {"name": "Color", "alias": "COLR"}
         new_axes = [ax.tag for ax in self.first_source.axes if ax.tag] + ["GDLO"]
         new_family_name = self.abbreviate_family_name(variant, False)
         vfname = new_family_name.replace(" ", "") + f"[{','.join(new_axes)}].ttf"
         target = os.path.join(self.config["vfDir"], vfname)
         self.recipe[target] = [
-                { "source": sourcepath },
-                {
-                    "operation": "exec",
-                    "exe": sys.executable + " -m fontprimer.guidelines",
-                    "args": "--color -o %s %s" % (guidelines_path, sourcepath),
-                },
-                {
-                    "source": guidelines_path
-                },
-                {
-                    "operation": "buildVariable",
-                    "fontmake_args": self.fontmake_args(),
-                },
-                self.build_STAT(),
-                {"operation": "rename", "name": new_family_name},
-                {
-                    "postprocess": "exec",
-                    "exe": sys.executable + " -m fontprimer.colrguidelines",
-                    "args": f"-o {target} {target}"
-                },
+            {"source": sourcepath},
+            {
+                "operation": "exec",
+                "exe": sys.executable + " -m fontprimer.guidelines",
+                "args": "--color -o %s %s" % (guidelines_path, sourcepath),
+            },
+            {"source": guidelines_path},
+            {
+                "operation": "buildVariable",
+                "fontmake_args": self.fontmake_args(),
+            },
+            self.build_STAT(),
+            {"operation": "rename", "name": new_family_name},
+            {
+                "postprocess": "exec",
+                "exe": sys.executable + " -m fontprimer.colrguidelines",
+                "args": f"-o {target} {target}",
+            },
         ]
 
     def build_variant_vf(self, variant, guideline=False):
@@ -118,11 +112,14 @@ class FontPrimer(GFBuilder):
         pins = pinned_axes(variant)
         new_axes = [ax.tag for ax in self.first_source.axes if ax.tag not in pins]
         vfname = new_family_name.replace(" ", "") + f"[{','.join(new_axes)}].ttf"
-        self.recipe[os.path.join(self.config["vfDir"], vfname)] = self.variable_steps(
-            guideline
-        ) + copy.deepcopy(variant.get("steps", [])) +  [
+        self.recipe[os.path.join(self.config["vfDir"], vfname)] = (
+            self.variable_steps(guideline)
+            + copy.deepcopy(variant.get("steps", []))
+            + [
                 {"operation": "rename", "name": new_family_name},
-        ]
+                {"operation": "hbsubset"},
+            ]
+        )
 
     def build_all_statics(self):
         if not boolify(self.config.get("buildStatic", True)):
@@ -164,8 +161,10 @@ class FontPrimer(GFBuilder):
         axis_tags = ",".join(sorted(tags))
         variant = None
         if color:
-            variant = { "name": "-Color", "alias": "COLR"}
-        family_name = self.abbreviate_family_name(variant=variant, guidelines=guidelines)
+            variant = {"name": "-Color", "alias": "COLR"}
+        family_name = self.abbreviate_family_name(
+            variant=variant, guidelines=guidelines
+        )
         sourcebase = family_name.replace(" ", "")
         return os.path.join(self.config["vfDir"], f"{sourcebase}[{axis_tags}].ttf")
 
@@ -193,7 +192,6 @@ class FontPrimer(GFBuilder):
                     "operation": "buildVariable",
                     "args": self.fontmake_args(),
                 },
-                {"operation": "hbsubset"},
                 # The space at the end of this fixargs is a stupid hack
                 # to get around a bug in builder2. If a step is repeated
                 # exactly in the recipe, it breaks the build graph.
@@ -277,7 +275,7 @@ class FontPrimer(GFBuilder):
                 {
                     "operation": "subspace",
                     "axes": location,
-                    "args": "--update-name-table"
+                    "args": "--update-name-table",
                 },
                 {"operation": "hbsubset"},
                 {"operation": "fix", "fixargs": "--include-source-fixes"},
@@ -286,6 +284,7 @@ class FontPrimer(GFBuilder):
 
     def static_template(self, variant, guidelines, output_format):
         template = self.config["staticTemplate"]
+
         def replacer(matchobj):
             var = matchobj[1]
             if var == "variant":
@@ -302,5 +301,6 @@ class FontPrimer(GFBuilder):
             if var in self.config:
                 return self.config[var]
             raise ValueError("Couldn't understand template variable {%%%s}" % var)
+
         replaced = re.sub(r"%{([^}]+)}", replacer, template)
         return replaced
