@@ -212,15 +212,15 @@ class FontPrimer(GFBuilder):
         longest_instance_name = max(custom_instances, key=len)
         elements.append(longest_instance_name)
 
-        if len(" ".join(elements)) > 31:
+        if len(" ".join(elements)) > 32:
             # Try to shorten
             if guidelines:
                 elements[2] = "Guide"
-            if len(" ".join(elements)) > 31 and variant and variant.get("alias"):
+            if len(" ".join(elements)) > 32 and variant and variant.get("alias"):
                 elements[1] = variant.get("alias")
-            if len(" ".join(elements)) > 31 and "shortFamilyName" in self.config:
+            if len(" ".join(elements)) > 32 and "shortFamilyName" in self.config:
                 elements[0] = str(self.config["shortFamilyName"])
-            if len(" ".join(elements)) > 31:
+            if len(" ".join(elements)) > 32:
                 raise ValueError(
                     "Font name '%s' too long; provide shortFamilyName and variant aliases"
                     % " ".join(elements)
