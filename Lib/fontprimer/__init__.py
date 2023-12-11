@@ -8,6 +8,7 @@ from tempfile import NamedTemporaryFile
 
 from strictyaml import YAML
 
+from gftools.util.styles import RIBBI_STYLE_NAMES
 from gftools.builder.recipeproviders.googlefonts import GFBuilder, DEFAULTS
 from gftools.builder.recipeproviders import boolify
 from gftools.builder.schema import stat_schema
@@ -207,17 +208,21 @@ class FontPrimer(GFBuilder):
         if guidelines:
             elements.append("Guidelines")
 
-        if len(" ".join(elements)) > 28:
+        custom_instances = [x.name.get_default() for x in self.first_source.instances if x not in RIBBI_STYLE_NAMES]
+        longest_instance_name = max(custom_instances, key=len)
+        elements.append(longest_instance_name)
+
+        if len(" ".join(elements)) > 31:
             # Try to shorten
             if guidelines:
                 elements[2] = "Guide"
-            if len(" ".join(elements)) > 28 and variant and variant.get("alias"):
+            if len(" ".join(elements)) > 31 and variant and variant.get("alias"):
                 elements[1] = variant.get("alias")
-            if len(" ".join(elements)) > 28 and "shortFamilyName" in self.config:
+            if len(" ".join(elements)) > 31 and "shortFamilyName" in self.config:
                 elements[0] = str(self.config["shortFamilyName"])
-            if len(" ".join(elements)) > 28:
+            if len(" ".join(elements)) > 31:
                 raise ValueError(
-                    "Family name '%s' too long; provide shortFamilyName and variant aliases"
+                    "Font name '%s' too long; provide shortFamilyName and variant aliases"
                     % " ".join(elements)
                 )
         return " ".join(elements)
