@@ -220,9 +220,9 @@ class FontPrimer(GFBuilder):
         custom_instances = [x.name.get_default() for x in self.first_source.instances if x not in RIBBI_STYLE_NAMES]
         if variant:
             if variant.get("italic"):
-                custom_instances = [x for x in custom_instances if "Italic" not in x]
-            else:
                 custom_instances = [x for x in custom_instances if "Italic" in x]
+            else:
+                custom_instances = [x for x in custom_instances if "Italic" not in x]
         longest_instance_name = max(custom_instances, key=len)
 
         elements.append(longest_instance_name)
