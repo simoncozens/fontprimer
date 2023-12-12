@@ -1,6 +1,7 @@
 import os
 import copy
 import babelfont
+import logging
 import re
 import sys
 import yaml
@@ -13,6 +14,8 @@ from gftools.builder.recipeproviders.googlefonts import GFBuilder, DEFAULTS
 from gftools.builder.recipeproviders import boolify
 from gftools.builder.schema import stat_schema
 
+
+log = logging.getLogger("fontprimer")
 
 def pinned_axes(variant):
     pins = set()
@@ -221,10 +224,11 @@ class FontPrimer(GFBuilder):
             if len(" ".join(elements)) > 32 and "shortFamilyName" in self.config:
                 elements[0] = str(self.config["shortFamilyName"])
             if len(" ".join(elements)) > 32:
-                raise ValueError(
+                log.warn(
                     "Font name '%s' too long; provide shortFamilyName and variant aliases"
                     % " ".join(elements)
                 )
+        elements.pop()  # Remove instance name
         return " ".join(elements)
 
     def build_a_static(
