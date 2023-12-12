@@ -115,11 +115,17 @@ class FontPrimer(GFBuilder):
         # Check in the steps to see if we are pinning any axes
         pins = pinned_axes(variant)
         new_axes = [ax.tag for ax in self.first_source.axes if ax.tag not in pins]
-        vfname = new_family_name.replace(" ", "") + f"[{','.join(new_axes)}].ttf"
-        self.recipe[os.path.join(self.config["vfDir"], vfname)] = (
+        italic_part = ""
+        if variant.get("italic"):
+            italic_part = "-Italic"
+            pass
+        vfname = new_family_name.replace(" ", "") + italic_part + f"[{','.join(new_axes)}].ttf"
+        recipe = self.recipe[os.path.join(self.config["vfDir"], vfname)] = (
             self.variable_steps(guideline)
             + copy.deepcopy(variant.get("steps", []))
-            + [
+        )
+
+        recipe.extend([
                 {"operation": "rename", "name": new_family_name},
                 {"operation": "fix", "args": "--include-source-fixes"},
                 {"operation": "hbsubset"},
@@ -212,7 +218,13 @@ class FontPrimer(GFBuilder):
             elements.append("Guidelines")
 
         custom_instances = [x.name.get_default() for x in self.first_source.instances if x not in RIBBI_STYLE_NAMES]
+        if variant:
+            if variant.get("italic"):
+                custom_instances = [x for x in custom_instances if "Italic" not in x]
+            else:
+                custom_instances = [x for x in custom_instances if "Italic" in x]
         longest_instance_name = max(custom_instances, key=len)
+
         elements.append(longest_instance_name)
 
         if len(" ".join(elements)) > 32:
@@ -270,9 +282,13 @@ class FontPrimer(GFBuilder):
         )
         if not location:
             return
+
         # Special case for Playwright, may bite us
-        if "Italic" in filename and "slnt" not in location and "ital" not in location:
+        if "Italic" in filename and (variant and not variant.get("italic")):
             return
+        if "Italic" not in filename and (variant and variant.get("italic")):
+            return
+
         self.recipe[target] = self.variable_steps(guidelines)
         if variant:
             self.recipe[target].extend(copy.deepcopy(variant.get("steps")))
