@@ -17,6 +17,7 @@ from gftools.builder.schema import stat_schema
 
 log = logging.getLogger("fontprimer")
 
+
 def pinned_axes(variant):
     pins = set()
     for step in variant["steps"]:
@@ -101,7 +102,7 @@ class FontPrimer(GFBuilder):
                 "fontmake_args": self.fontmake_args(),
             },
             self.build_STAT(),
-            {"operation": "rename", "name": new_family_name},
+            {"operation": "rename", "args": "--just-family", "name": new_family_name},
             {
                 "postprocess": "exec",
                 "exe": sys.executable + " -m fontprimer.colrguidelines",
@@ -119,14 +120,22 @@ class FontPrimer(GFBuilder):
         if variant.get("italic"):
             italic_part = "-Italic"
             pass
-        vfname = new_family_name.replace(" ", "") + italic_part + f"[{','.join(new_axes)}].ttf"
-        recipe = self.recipe[os.path.join(self.config["vfDir"], vfname)] = (
-            self.variable_steps(guideline)
-            + copy.deepcopy(variant.get("steps", []))
+        vfname = (
+            new_family_name.replace(" ", "")
+            + italic_part
+            + f"[{','.join(new_axes)}].ttf"
         )
+        recipe = self.recipe[
+            os.path.join(self.config["vfDir"], vfname)
+        ] = self.variable_steps(guideline) + copy.deepcopy(variant.get("steps", []))
 
-        recipe.extend([
-                {"operation": "rename", "name": new_family_name},
+        recipe.extend(
+            [
+                {
+                    "operation": "rename",
+                    "args": "--just-family",
+                    "name": new_family_name,
+                },
                 {"operation": "fix", "args": "--include-source-fixes"},
                 {"operation": "hbsubset"},
             ]
@@ -217,7 +226,11 @@ class FontPrimer(GFBuilder):
         if guidelines:
             elements.append("Guidelines")
 
-        custom_instances = [x.name.get_default() for x in self.first_source.instances if x not in RIBBI_STYLE_NAMES] + [""]
+        custom_instances = [
+            x.name.get_default()
+            for x in self.first_source.instances
+            if x not in RIBBI_STYLE_NAMES
+        ] + [""]
         if variant:
             if variant.get("italic"):
                 custom_instances = [x for x in custom_instances if "Italic" in x]
@@ -294,7 +307,11 @@ class FontPrimer(GFBuilder):
             self.recipe[target].extend(copy.deepcopy(variant.get("steps")))
         self.recipe[target].extend(
             [
-                {"operation": "rename", "name": new_family_name},
+                {
+                    "operation": "rename",
+                    "args": "--just-family",
+                    "name": new_family_name,
+                },
                 {
                     "operation": "subspace",
                     "axes": location,
