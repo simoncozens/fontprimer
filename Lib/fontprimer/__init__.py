@@ -79,6 +79,11 @@ class FontPrimer(GFBuilder):
             args = {}
         return {"operation": "buildStat", **args}
 
+    def fix(self):
+        if boolify(self.config.get("includeSourceFixes", YAML(True))):
+            return {"operation": "fix", "args": "--include-source-fixes"}
+        return {"operation": "fix" }
+
     def build_color_guidelines(self):
         ordinary_vf = self.apex_vf_path()
         color_vf = self.apex_vf_path(color=True)
@@ -136,7 +141,7 @@ class FontPrimer(GFBuilder):
                     "args": "--just-family",
                     "name": new_family_name,
                 },
-                {"operation": "fix", "args": "--include-source-fixes"},
+                self.fix(),
                 {"operation": "hbsubset"},
             ]
         )
@@ -212,7 +217,7 @@ class FontPrimer(GFBuilder):
                     "operation": "buildVariable",
                     "args": self.fontmake_args(),
                 },
-                {"operation": "fix", "args": "--include-source-fixes"},
+                self.fix(),
                 self.build_STAT(),
             ]
         )
@@ -318,7 +323,7 @@ class FontPrimer(GFBuilder):
                     "args": "--update-name-table",
                 },
                 {"operation": "hbsubset"},
-                {"operation": "fix", "args": "--include-source-fixes"},
+                self.fix(),
             ]
         )
 
