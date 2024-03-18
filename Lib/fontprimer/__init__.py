@@ -11,7 +11,6 @@ from strictyaml import YAML
 
 from gftools.util.styles import RIBBI_STYLE_NAMES
 from gftools.builder.recipeproviders.googlefonts import GFBuilder, DEFAULTS
-from gftools.builder.recipeproviders import boolify
 from gftools.builder.schema import stat_schema
 
 
@@ -38,7 +37,7 @@ class FontPrimer(GFBuilder):
         if "stat" in self.config:
             self.statfile = NamedTemporaryFile(mode="w", delete=False)
             self.config["stat"].revalidate(stat_schema)
-            yaml.dump(self.config["stat"].data, self.statfile)
+            yaml.dump(self.config["stat"], self.statfile)
             self.statfile.close()
         else:
             self.statfile = None
@@ -49,12 +48,12 @@ class FontPrimer(GFBuilder):
 
     @property
     def guidelines(self):
-        if boolify(self.config.get("doGuidelines")):
+        if self.config.get("doGuidelines"):
             return [False, True]
         return [False]
 
     def build_all_variables(self):
-        if not boolify(self.config.get("buildVariable", True)):
+        if not self.config.get("buildVariable", True):
             return
 
         # Build apex VF
@@ -64,13 +63,13 @@ class FontPrimer(GFBuilder):
             ) + [{"operation": "hbsubset"}]
 
         # Build color apex
-        if boolify(self.config.get("buildColorVariable", True)):
+        if self.config.get("buildColorVariable", True):
             self.build_color_guidelines()
 
         # Build variant VFs
         for variant in self.config.get("variants", []):
             for guideline in self.guidelines:
-                self.build_variant_vf(variant.data, guideline)
+                self.build_variant_vf(variant, guideline)
 
     def build_STAT(self):
         if self.statfile:
@@ -80,7 +79,7 @@ class FontPrimer(GFBuilder):
         return {"operation": "buildStat", **args}
 
     def fix(self):
-        if boolify(self.config.get("includeSourceFixes", YAML(True))):
+        if self.config.get("includeSourceFixes", YAML(True)):
             return {"operation": "fix", "args": "--include-source-fixes"}
         return {"operation": "fix"}
 
@@ -147,7 +146,7 @@ class FontPrimer(GFBuilder):
         )
 
     def build_all_statics(self):
-        if not boolify(self.config.get("buildStatic", True)):
+        if not self.config.get("buildStatic", True):
             return
         source = self.sources[0]
 
@@ -167,7 +166,7 @@ class FontPrimer(GFBuilder):
                         source,
                         instance,
                         add_name=variantname,
-                        variant=definition.data,
+                        variant=definition,
                         guidelines=guideline,
                         output="ttf",
                     )
