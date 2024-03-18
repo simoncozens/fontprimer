@@ -248,7 +248,10 @@ class FontPrimer(GFBuilder):
         if len(" ".join(elements)) > 32:
             # Try to shorten
             if guidelines:
-                elements[2] = "Guide"
+                if variant:
+                    elements[2] = "Guide"
+                else:
+                    elements[1] = "Guide"
             if len(" ".join(elements)) > 32 and variant and variant.get("alias"):
                 elements[1] = variant.get("alias")
             if len(" ".join(elements)) > 32 and "shortFamilyName" in self.config:
