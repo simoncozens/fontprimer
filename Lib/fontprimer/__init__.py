@@ -41,6 +41,10 @@ class FontPrimer(GFBuilder):
             self.statfile.close()
         else:
             self.statfile = None
+        for field in ["vfDir", "ttDir", "otDir", "woffDir"]:
+            self.config[field] = self.config[field].replace(
+                "$outputDir", self.config["outputDir"]
+            )
         self.first_source = babelfont.load(self.sources[0].path)
         self.build_all_variables()
         self.build_all_statics()
