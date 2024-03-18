@@ -197,10 +197,11 @@ class FontPrimer(GFBuilder):
 
     def variable_steps(self, guidelines=False):
         sourcepath = self.sources[0].path
-        guidelines_steps = []
+        steps = [{"source": sourcepath}]
+        rename = []
         if guidelines:
             guidelines_path = sourcepath.replace(".glyphs", ".guidelines.glyphs")
-            guidelines_steps = [
+            steps += [
                 {
                     "operation": "exec",
                     "exe": sys.executable + " -m fontprimer.guidelines",
@@ -208,18 +209,27 @@ class FontPrimer(GFBuilder):
                 },
                 {"source": guidelines_path},
             ]
-        return (
-            [{"source": sourcepath}]
-            + guidelines_steps
-            + [
+            rename = [
+                {
+                    "operation": "rename",
+                    "args": "--just-family",
+                    "name": self.abbreviate_family_name(guidelines=True),
+                }
+            ]
+        steps.extend(
+            [
                 {
                     "operation": "buildVariable",
                     "args": self.fontmake_args(),
-                },
+                }
+            ]
+            + rename
+            + [
                 self.fix(),
                 self.build_STAT(),
             ]
         )
+        return steps
 
     def abbreviate_family_name(self, variant=None, guidelines=False):
         elements = [
