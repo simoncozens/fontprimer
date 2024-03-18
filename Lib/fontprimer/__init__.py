@@ -82,7 +82,7 @@ class FontPrimer(GFBuilder):
     def fix(self):
         if boolify(self.config.get("includeSourceFixes", YAML(True))):
             return {"operation": "fix", "args": "--include-source-fixes"}
-        return {"operation": "fix" }
+        return {"operation": "fix"}
 
     def build_color_guidelines(self):
         ordinary_vf = self.apex_vf_path()
@@ -130,9 +130,9 @@ class FontPrimer(GFBuilder):
             + italic_part
             + f"[{','.join(new_axes)}].ttf"
         )
-        recipe = self.recipe[
-            os.path.join(self.config["vfDir"], vfname)
-        ] = self.variable_steps(guideline) + copy.deepcopy(variant.get("steps", []))
+        recipe = self.recipe[os.path.join(self.config["vfDir"], vfname)] = (
+            self.variable_steps(guideline) + copy.deepcopy(variant.get("steps", []))
+        )
 
         recipe.extend(
             [
