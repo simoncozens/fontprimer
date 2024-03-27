@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fontprimer"
-description = "Merge together two source fonts in UFO format"
+description = "A gftools-builder recipe provider for handwriting fonts"
 readme = "README.md"
 dynamic = ["version"]
 authors = [
