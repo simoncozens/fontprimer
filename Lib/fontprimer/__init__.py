@@ -106,7 +106,7 @@ class FontPrimer(GFBuilder):
             {"source": guidelines_path},
             {
                 "operation": "buildVariable",
-                "fontmake_args": self.fontmake_args(),
+                "fontmake_args": self.fontmake_args(self.sources[0]),
             },
             self.build_STAT(),
             {"operation": "rename", "args": "--just-family", "name": new_family_name},
@@ -195,8 +195,8 @@ class FontPrimer(GFBuilder):
         sourcebase = family_name.replace(" ", "")
         return os.path.join(self.config["vfDir"], f"{sourcebase}[{axis_tags}].ttf")
 
-    def fontmake_args(self):
-        return super().fontmake_args() + " --no-production-names"
+    def fontmake_args(self, source):
+        return super().fontmake_args(source) + " --no-production-names"
 
     def variable_steps(self, guidelines=False):
         sourcepath = self.sources[0].path
@@ -223,7 +223,7 @@ class FontPrimer(GFBuilder):
             [
                 {
                     "operation": "buildVariable",
-                    "args": self.fontmake_args(),
+                    "args": self.fontmake_args(self.sources[0]),
                 }
             ]
             + rename
