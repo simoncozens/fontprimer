@@ -36,7 +36,6 @@ class FontPrimer(GFBuilder):
         self.config = {**DEFAULTS, **self.config}
         if "stat" in self.config:
             self.statfile = NamedTemporaryFile(mode="w", delete=False)
-            self.config["stat"].revalidate(stat_schema)
             yaml.dump(self.config["stat"], self.statfile)
             self.statfile.close()
         else:
