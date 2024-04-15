@@ -241,7 +241,7 @@ class FontPrimer(GFBuilder):
         if variant:
             elements.append(variant["name"])
         if guidelines:
-            elements.append("Guidelines")
+            elements.append("Guides")
 
         custom_instances = [
             x.name.get_default()
@@ -259,11 +259,6 @@ class FontPrimer(GFBuilder):
 
         if len(" ".join(elements)) > 32:
             # Try to shorten
-            if guidelines:
-                if variant:
-                    elements[2] = "Guide"
-                else:
-                    elements[1] = "Guide"
             if len(" ".join(elements)) > 32 and variant and variant.get("alias"):
                 elements[1] = variant.get("alias")
             if len(" ".join(elements)) > 32 and "shortFamilyName" in self.config:
@@ -355,7 +350,7 @@ class FontPrimer(GFBuilder):
                 return output_format
             if var == "guidelines":
                 if guidelines:
-                    return "Guidelines"
+                    return "Guides"
                 else:
                     return ""
             if var in self.config:
