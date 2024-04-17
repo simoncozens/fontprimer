@@ -12,7 +12,7 @@ authors = [
 ]
 dependencies = [
   "paintcompiler>=0.3.0",
-  "babelfont @ git+https://github.com/simoncozens/babelfont" # git version
+  "babelfont>=3.0.2",
 ]
 [tool.setuptools.packages.find]
 where = ["Lib"]
