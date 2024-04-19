@@ -63,7 +63,7 @@ class FontPrimer(GFBuilder):
         for guideline in self.guidelines:
             self.recipe[self.apex_vf_path(guideline)] = self.variable_steps(
                 guideline
-            ) + [{"operation": "hbsubset"}]
+            ) + [{"operation": "hbsubset", "args": "--passthrough-tables"}]
 
         # Build color apex
         if self.config.get("buildColorVariable", True):
@@ -144,7 +144,7 @@ class FontPrimer(GFBuilder):
                     "name": new_family_name,
                 },
                 self.fix(),
-                {"operation": "hbsubset"},
+                {"operation": "hbsubset", "args": "--passthrough-tables"},
             ]
         )
 
@@ -332,7 +332,7 @@ class FontPrimer(GFBuilder):
                     "axes": location,
                     "args": "--update-name-table",
                 },
-                {"operation": "hbsubset"},
+                {"operation": "hbsubset", "args": "--passthrough-tables"},
                 self.fix(),
             ]
         )
