@@ -12,7 +12,7 @@ authors = [
 ]
 dependencies = [
   "paintcompiler>=0.3.0",
-  "babelfont>=3.0.4",
+  "babelfont>=3.0.5",
 ]
 [tool.setuptools.packages.find]
 where = ["Lib"]
