@@ -295,8 +295,9 @@ class FontPrimer(GFBuilder):
         if "staticTemplate" in self.config:
             outdir = self.static_template(variant, guidelines, output)
         target = os.path.join(outdir, f"{filename}.{output}")
-        # Or maybe backward...
-        instance_location = self.first_source.map_forward(instance.location)
+        instance_location = self.first_source.designspace_to_userspace(
+            instance.location
+        )
         if variant is not None:
             pins = pinned_axes(variant)
         else:
