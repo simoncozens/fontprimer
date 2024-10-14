@@ -11,7 +11,6 @@ from strictyaml import YAML
 
 from gftools.util.styles import RIBBI_STYLE_NAMES
 from gftools.builder.recipeproviders.googlefonts import GFBuilder, DEFAULTS
-from gftools.builder.schema import stat_schema
 
 
 log = logging.getLogger("fontprimer")
@@ -87,8 +86,6 @@ class FontPrimer(GFBuilder):
         return {"operation": "fix"}
 
     def build_color_guidelines(self):
-        ordinary_vf = self.apex_vf_path()
-        color_vf = self.apex_vf_path(color=True)
         sourcepath = self.sources[0].path
         guidelines_path = sourcepath.replace(".glyphs", ".colr-guidelines.glyphs")
         variant = {"name": "Color", "alias": "COLR"}
