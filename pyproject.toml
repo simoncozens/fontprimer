@@ -7,13 +7,8 @@ name = "fontprimer"
 description = "A gftools-builder recipe provider for handwriting fonts"
 readme = "README.md"
 dynamic = ["version"]
-authors = [
-  { name = "Simon Cozens", email = "simon@simon-cozens.org" }
-]
-dependencies = [
-  "paintcompiler>=0.3.0",
-  "babelfont>=3.0.5",
-]
+authors = [{ name = "Simon Cozens", email = "simon@simon-cozens.org" }]
+dependencies = ["paintcompiler>=0.3.0", "babelfont>=3.0.5", "pendot"]
 [tool.setuptools.packages.find]
 where = ["Lib"]
 

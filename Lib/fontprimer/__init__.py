@@ -1,3 +1,4 @@
+import json
 import os
 import copy
 import babelfont
@@ -93,6 +94,8 @@ class FontPrimer(GFBuilder):
         new_family_name = self.abbreviate_family_name(variant, False)
         vfname = new_family_name.replace(" ", "") + f"[{','.join(new_axes)}].ttf"
         target = os.path.join(self.config["vfDir"], vfname)
+        # We still use the legacy fontprimer.guidelines for color fonts
+        # for now.
         self.recipe[target] = [
             {"source": sourcepath},
             {
@@ -199,13 +202,18 @@ class FontPrimer(GFBuilder):
         sourcepath = self.sources[0].path
         steps = [{"source": sourcepath}]
         rename = []
+        pendot_config = {"effects": ["Copy", "Guidelines"]} | self.config.get(
+            "guidelines", {}
+        )
+        pendot_config_json = json.dumps(pendot_config)
         if guidelines:
             guidelines_path = sourcepath.replace(".glyphs", ".guidelines.glyphs")
             steps += [
                 {
                     "operation": "exec",
-                    "exe": sys.executable + " -m fontprimer.guidelines",
-                    "args": "-o %s %s" % (guidelines_path, sourcepath),
+                    "exe": sys.executable + " -m pendot",
+                    "args": "-o %s --config '%s' %s"
+                    % (guidelines_path, pendot_config_json, sourcepath),
                 },
                 {"source": guidelines_path},
             ]
