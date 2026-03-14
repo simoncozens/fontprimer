@@ -295,7 +295,7 @@ class FontPrimer(GFBuilder):
         filename = (
             new_family_name.replace(" ", "")
             + "-"
-            + instance.styleName.get_default().replace(" ", "")
+            + instance.name.get_default().replace(" ", "")
         )
         if "staticTemplate" in self.config:
             outdir = self.static_template(variant, guidelines, output)
